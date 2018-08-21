@@ -1,0 +1,125 @@
+﻿SOURCE CODE:
+Tricky Part 1: Generating Candidates
+private Dictionary<string, double> GenerateCandidates(Dictionary<string, 
+                                   double> dic_FrequentItems)
+{
+    Dictionary<string, double> dic_CandidatesReturn = new Dictionary<string, double>();
+    for (int i = 0; i < dic_FrequentItems.Count - 1; i++)
+    {
+        string strFirstItem = Alphabetize(dic_FrequentItems.Keys.ElementAt(i));
+        for (int j = i + 1; j < dic_FrequentItems.Count; j++)
+        {
+            string strSecondItem = Alphabetize(dic_FrequentItems.Keys.ElementAt(j));
+            string strGeneratedCandidate = GetCandidate(strFirstItem, strSecondItem);
+            if (strGeneratedCandidate != string.Empty)
+            {
+                strGeneratedCandidate = Alphabetize(strGeneratedCandidate);
+                double dSupport = GetSupport(strGeneratedCandidate);
+                dic_CandidatesReturn.Add(strGeneratedCandidate, dSupport);
+            }
+        }
+    }
+    return dic_CandidatesReturn;
+}
+
+private string GetCandidate(string strFirstItem, string strSecondItem)
+{
+    int nLength = strFirstItem.Length;
+    if (nLength == 1)
+    {
+        return strFirstItem + strSecondItem;
+    }
+    else
+    {
+        string strFirstSubString = strFirstItem.Substring(0, nLength - 1);
+        string strSecondSubString = strSecondItem.Substring(0, nLength - 1);
+        if (strFirstSubString == strSecondSubString)
+        {
+            return strFirstItem + strSecondItem[nLength - 1];
+        }
+        else
+            return string.Empty;
+    }
+}
+Tricky Part 2: Generating Rules
+private List<clssRules> GenerateRules()
+{
+    List<clssRules> lstRulesReturn = new List<clssRules>();
+    foreach (string strItem in m_dicAllFrequentItems.Keys)
+    {
+        if (strItem.Length > 1)
+        {
+            int nMaxCombinationLength = strItem.Length / 2;
+            GenerateCombination(strItem, nMaxCombinationLength, ref lstRulesReturn);
+        }
+    }
+    return lstRulesReturn;
+}
+
+private void GenerateCombination(string strItem, int nCombinationLength, 
+             ref List<clssRules> lstRulesReturn)
+{
+    int nItemLength = strItem.Length;
+    if (nItemLength == 2)
+    {
+        AddItem(strItem[0].ToString(), strItem, ref lstRulesReturn);
+        return;
+    }
+    else if (nItemLength == 3)
+    {
+        for (int i = 0; i < nItemLength; i++)
+        {
+            AddItem(strItem[i].ToString(), strItem, ref lstRulesReturn);
+        }
+        return;
+    }
+    else
+    {
+        for (int i = 0; i < nItemLength; i++)
+        {
+            GetCombinationRecursive(strItem[i].ToString(), strItem, 
+                          nCombinationLength, ref lstRulesReturn);
+        }
+    }
+}
+
+private string GetCombinationRecursive(string strCombination, string strItem, 
+               int nCombinationLength, ref List<clssRules> lstRulesReturn)
+{
+    AddItem(strCombination, strItem, ref lstRulesReturn);
+    char cLastTokenCharacter = strCombination[strCombination.Length - 1];
+    int nLastTokenCharcaterIndex = strCombination.IndexOf(cLastTokenCharacter);
+    int nLastTokenCharcaterIndexInParent = strItem.IndexOf(cLastTokenCharacter);
+    char cNextCharacter;
+    char cLastItemCharacter = strItem[strItem.Length - 1];
+    if (strCombination.Length == nCombinationLength)
+    {
+        if (cLastTokenCharacter != cLastItemCharacter)
+        {
+            strCombination = strCombination.Remove(nLastTokenCharcaterIndex, 1);
+            cNextCharacter = strItem[nLastTokenCharcaterIndexInParent + 1];
+            string strNewToken = strCombination + cNextCharacter;
+            return (GetCombinationRecursive(strNewToken, strItem, 
+                    nCombinationLength, ref lstRulesReturn));
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+    else
+    {
+        if (strCombination != cLastItemCharacter.ToString())
+        {
+            cNextCharacter = strItem[nLastTokenCharcaterIndexInParent + 1];
+            string strNewToken = strCombination + cNextCharacter;
+            return (GetCombinationRecursive(strNewToken, strItem, 
+                    nCombinationLength, ref lstRulesReturn));
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+}
+
